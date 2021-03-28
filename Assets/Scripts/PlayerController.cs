@@ -1,22 +1,20 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    public KeyCode jump;
-    public KeyCode restart;
-    public int force;
     public static bool isAlive = true;
-    public TMPro.TMP_Text scoreTxt;
-    private Rigidbody2D _rigidbody2D;
+    public UnityEvent OnScoreChange;
+    public UnityEvent OnDeath;
 
-    //In production, this should be handled by a game manager and not the player
-    private int score;
+    [SerializeField] private KeyCode jump;
+    [SerializeField] private int force;
+    [SerializeField] private Rigidbody2D _rigidbody2D;
     
     void Start()
     {
         isAlive = true;
-        score = 0;
         _rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
@@ -26,26 +24,22 @@ public class PlayerController : MonoBehaviour
         {
             _rigidbody2D.AddForce(Vector3.up * Mathf.Abs(Physics.gravity.y) * force, ForceMode2D.Force);
         }
-        if (Input.GetKeyDown(restart))
-        {
-            SceneManager.LoadScene(0);
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.transform.tag == "Score")
+        if (collision.transform.tag == Constants.Tags.Score)
         {
-            score++;
-            scoreTxt.text = score.ToString();
+            OnScoreChange.Invoke();
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.transform.tag == "Pipe")
+        if (collision.transform.tag == Constants.Tags.Pipe || collision.transform.tag == Constants.Tags.Floor)
         {
             isAlive = false;
+            OnDeath.Invoke();
         }
     }
 }
